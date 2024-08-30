@@ -1,0 +1,65 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model Task {
+  id Int @id @default(autoincrement())
+
+  /// Either - DETECTED | APPROVED | REJECTED
+  status String
+
+  ///////////////////// KERNEL ///////////////////////
+  /// ID per SkateApp
+  taskId       Int
+  /// Target chainId of the task
+  chainId      BigInt
+  /// Contract address of the MessageBox that this task was created on
+  messageBox   String
+  /// Hash of kernel transaction on Skate
+  kernelTxHash String
+  /// Originating user
+  user         String
+  /// Address of application on periphery chain
+  appAddress   String
+  /// calldata of task on periphery chain
+  taskCalldata String
+
+  ////////////////////// AVS /////////////////////////
+  /// On AVS, to differentiate reward distribution
+  taskDefinitionId Int
+  /// e.g. offchain/sidechain URI for additional task data
+  proofOfTask      String?
+  /// avs Task Id that this task references (for preconfirmation)
+  avsTaskNumber    Int?
+  /// avs hash for `submitTask` (for preconfirmation)
+  avsTxHash        String?
+  /// AVS performer: who collects task and publish to avs network
+  performer        String?
+  /// AVS aggregator: who aggregates signatures and submits task
+  aggregator       String?
+
+  ////////////////////// PERIPHERY /////////////////////////
+  /// NOTE: Backward compatible
+  peripheryTxHash      String?
+
+
+  ///////////////// INTERNAL USE /////////////////////
+  /// Record creation timestamp, book keeping only
+  createdAt     DateTime @default(now())
+  /// Record updation timestamp, book keeping only
+  lastUpdatedAt DateTime @updatedAt
+
+  @@unique([taskId, messageBox])
+  @@unique([taskId, appAddress])
+}
